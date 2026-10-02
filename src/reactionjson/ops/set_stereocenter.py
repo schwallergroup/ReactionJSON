@@ -16,9 +16,17 @@ _TAGS = (Chem.ChiralType.CHI_TETRAHEDRAL_CW, Chem.ChiralType.CHI_TETRAHEDRAL_CCW
 
 
 def _cip(mol: Chem.Mol, idx: int):
-    m = Chem.Mol(mol)
+    # Label the molecule as it will be written, not the live one: after a
+    # sequence of edits the in-memory tag can read as R while the SMILES it
+    # writes re-parses as S (seen on a ring CH whose bond list was rebuilt by
+    # break_bond + add_group).
+    smi = Chem.MolToSmiles(mol)
+    order = list(mol.GetProp("_smilesAtomOutputOrder", autoConvert=True))
+    m = Chem.MolFromSmiles(smi)
+    if m is None:
+        return None
     rdCIPLabeler.AssignCIPLabels(m)
-    atom = m.GetAtomWithIdx(idx)
+    atom = m.GetAtomWithIdx(order.index(idx))
     return atom.GetProp("_CIPCode").upper() if atom.HasProp("_CIPCode") else None
 
 
@@ -32,12 +40,19 @@ def set_stereocenter(mol: Chem.Mol, idx: int, stereo: str) -> Chem.Mol:
         - stereo is not 'R' or 'S'
         - the atom is not a CIP stereocentre (neither tag gives it a label)
     """
-    want = stereo.upper() if isinstance(stereo, str) else None
-    if want not in ("R", "S"):
-        raise ValueError(f"stereo must be 'R' or 'S'; got {stereo!r}")
     n = mol.GetNumAtoms()
     if not (0 <= idx < n):
         raise ValueError(f"atom index out of range: idx={idx}, num_atoms={n}")
+    if stereo is None:
+        rw = Chem.RWMol(mol)
+        rw.GetAtomWithIdx(idx).SetChiralTag(Chem.ChiralType.CHI_UNSPECIFIED)
+        new_mol = rw.GetMol()
+        _sanitize(new_mol)
+        Chem.AssignStereochemistry(new_mol, cleanIt=True, force=True)
+        return new_mol
+    want = stereo.upper() if isinstance(stereo, str) else None
+    if want not in ("R", "S"):
+        raise ValueError(f"stereo must be 'R', 'S' or null; got {stereo!r}")
 
     for tag in _TAGS:
         rw = Chem.RWMol(mol)

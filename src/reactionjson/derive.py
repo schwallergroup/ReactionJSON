@@ -527,18 +527,12 @@ def _stereo_step(emit, current: Chem.Mol, t_labels: dict, t_bond_labels: dict,
         if key in tried:
             continue
         tried.add(key)
-        if want and have:
-            emit({"op": "invert_stereocenter", "map_idx": m})
-            return True
         if have and not want:
             if t_by[m].GetChiralTag() == Chem.ChiralType.CHI_UNSPECIFIED:
-                emit({"op": "clear_stereocenter", "map_idx": m})
+                emit({"op": "set_stereocenter", "map_idx": m, "stereo": None})
                 return True
             continue
-        if want and not have:
-            if c_by[m].GetChiralTag() != Chem.ChiralType.CHI_UNSPECIFIED:
-                emit({"op": "invert_stereocenter", "map_idx": m})
-                return True
+        if want:
             # Real CIP (not the map-resolved label), since that is what the op reads.
             cip = _real_cip(target, m)
             if cip:
