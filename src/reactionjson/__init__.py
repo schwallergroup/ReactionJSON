@@ -24,6 +24,7 @@ from reactionjson.executor import execute_ops as _execute_ops
 from reactionjson.executor import get_mapped_smiles
 from reactionjson.ops import VOCABULARY_V2 as OPS
 from reactionjson.derive import OpDerivationError, derive_ops_for_reaction
+from reactionjson.prompt import SYSTEM_PROMPT, user_prompt
 
 __version__ = "0.1.0"
 __all__ = [
@@ -32,6 +33,8 @@ __all__ = [
     "get_mapped_smiles",
     "OPS",
     "OpDerivationError",
+    "SYSTEM_PROMPT",
+    "user_prompt",
 ]
 
 

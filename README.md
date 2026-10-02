@@ -39,6 +39,27 @@ Atoms are addressed by **map number**, never by index, and map numbers are
 resolved at the moment each op runs — so they stay valid after earlier ops add
 or remove atoms.
 
+## Asking an LLM for a step
+
+`SYSTEM_PROMPT` explains the vocabulary to a model, and `user_prompt` renders the
+product the way the executor will edit it (Kekulé, mapped) next to your strategy.
+The model answers with JSON whose `"operations"` go straight into `apply_ops`:
+
+```python
+import json
+from reactionjson import SYSTEM_PROMPT, apply_ops, get_mapped_smiles, user_prompt
+
+mapped = get_mapped_smiles("CC(=O)OCC")
+reply = your_llm(system=SYSTEM_PROMPT,
+                 user=user_prompt(mapped, "retro-esterification: cut the ester C-O"))
+precursors, err = apply_ops(json.loads(reply)["operations"], mapped)
+```
+
+Give `apply_ops` the same mapped SMILES you gave `user_prompt`, so the bond orders
+the model read are the ones it edits. On failure `err` names the op that broke —
+append it to the next user message and ask again. The reply also carries
+`"analysis"` and a one-sentence `"reaction_conditions"`.
+
 ## Kekulé handling
 
 The molecule is kekulized **once**, before the first op, and stays that way for

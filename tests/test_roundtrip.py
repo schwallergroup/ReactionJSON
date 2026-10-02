@@ -155,3 +155,27 @@ def test_retired_stereo_ops_name_their_replacement():
     out, err = apply_ops([{"op": "invert_stereocenter", "map_idx": 2}],
                          "[CH3:1][C@@H:2]([NH2:3])[C:4](=[O:5])[OH:6]")
     assert out is None and "set_stereocenter" in err
+
+
+def test_prompt_op_table_matches_the_vocabulary():
+    """The ops the model is told about are exactly the ops v2 accepts."""
+    import re
+    from reactionjson import SYSTEM_PROMPT
+    table = set(re.findall(r"^\| (\w+) \|", SYSTEM_PROMPT, re.M)) - {"op"}
+    assert table == set(OPS)
+
+
+def test_prompt_shows_the_kekule_form_the_executor_edits():
+    from reactionjson import user_prompt
+    msg = user_prompt(get_mapped_smiles("c1ccncc1"), "anything")
+    assert "Atom-mapped: " in msg and "=" in msg and "c" not in msg.split("Atom-mapped: ")[1].split("\n")[0]
+
+
+def test_prompt_nitro_pattern_executes():
+    """The retro-nitro-reduction pattern in the prompt, as written, gives nitrobenzene."""
+    ops = [{"op": "set_formal_charge", "map_idx": 1, "charge": 1},
+           {"op": "add_group", "map_idx": 1, "fragment_smiles": "*=[O:101]", "order": 2},
+           {"op": "add_group", "map_idx": 1, "fragment_smiles": "*[O-:102]"}]
+    out, err = apply_ops(ops, "[NH2:1][c:2]1[cH:3][cH:4][cH:5][cH:6][cH:7]1")
+    assert err is None, err
+    assert canon_set(out) == canon_set("O=[N+]([O-])c1ccccc1")
