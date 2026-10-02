@@ -32,12 +32,7 @@ Seven operations:
 | `set_bond_stereo` | `map_a`, `map_b`, `stereo` (E/Z), `map_ref_a?`, `map_ref_b?` | sets alkene geometry |
 
 `break_bond` and `add_bond` are a **ladder over bond order** — one order at a
-time, and the only way to change a bond. Reducing a C=O to C–O is one
-`break_bond`; severing it is two.
-
-Atoms are addressed by **map number**, never by index, and map numbers are
-resolved at the moment each op runs — so they stay valid after earlier ops add
-or remove atoms.
+time. Reducing the pi bond in C=O to C–O is one `break_bond', breaking the sigma bond it is two.
 
 ## Asking an LLM for a step
 
@@ -59,22 +54,6 @@ Give `apply_ops` the same mapped SMILES you gave `user_prompt`, so the bond orde
 the model read are the ones it edits. On failure `err` names the op that broke —
 append it to the next user message and ask again. The reply also carries
 `"analysis"` and a one-sentence `"reaction_conditions"`.
-
-## Kekulé handling
-
-The molecule is kekulized **once**, before the first op, and stays that way for
-the whole sequence. That matters: ops sanitize without re-perceiving
-aromaticity, so the structure you were shown is the structure being edited, all
-the way through. Re-kekulizing between ops could pick a different resonance
-structure, and a bond you read as double could come back single.
-
-Aromaticity is restored once at the end, so Kekulé form never leaks into the
-returned SMILES.
-
-## Errors
-
-`apply_ops` never raises. It returns `(None, "Op [2] add_bond: ...")` naming the
-op index that failed, which is what makes it usable in a retry loop.
 
 ## Install
 
