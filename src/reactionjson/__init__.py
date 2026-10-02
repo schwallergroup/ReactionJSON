@@ -5,7 +5,7 @@ Two operations, inverse to each other:
     apply_ops(ops, mapped_smiles)   ops + a product  -> the precursors
     derive_ops(mapped_reaction)     a mapped reaction -> the ops that produce it
 
-The op vocabulary is nine operations. ``break_bond`` and ``add_bond`` are a
+The op vocabulary is seven operations. ``break_bond`` and ``add_bond`` are a
 ladder over bond order — they step one order at a time and are the only way to
 change a bond, so reducing a C=O to C-O is one break_bond and severing it is two.
 

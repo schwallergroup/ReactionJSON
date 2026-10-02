@@ -34,18 +34,17 @@ __all__ = [
 ]
 
 
-#: The op names the LLM is shown under vocabulary="v2". Nine primitives, with
+#: The op names the LLM is shown under vocabulary="v2". Seven primitives, with
 #: break_bond/add_bond acting as a bond-order ladder that subsumes
 #: change_bond_order. add_group is kept: it already preserves explicit map tags
 #: in the fragment SMILES, so a later add_bond can reference the atoms it
-#: introduced.
+#: introduced. set_stereocenter (R/S, or null to clear) is the one tetrahedral
+#: stereo op: it subsumes invert_stereocenter and clear_stereocenter.
 VOCABULARY_V2 = frozenset({
     "break_bond",
     "add_bond",
     "add_group",
     "set_explicit_h",
-    "invert_stereocenter",
-    "clear_stereocenter",
     "set_bond_stereo",
     "set_formal_charge",
     "set_stereocenter",
@@ -58,6 +57,8 @@ VOCABULARY_V1_ONLY = frozenset({
     "change_bond_order",   # subsumed by the add_bond/break_bond ladder
     "remove_group",        # discarded the detached fragment instead of keeping it
     "change_atom",         # element transmutation is not a reaction
+    "invert_stereocenter", # subsumed by set_stereocenter (the opposite R/S)
+    "clear_stereocenter",  # subsumed by set_stereocenter with stereo=null
 })
 
 VOCABULARY_V1 = VOCABULARY_V2 | VOCABULARY_V1_ONLY

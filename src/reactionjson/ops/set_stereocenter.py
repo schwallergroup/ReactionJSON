@@ -1,10 +1,10 @@
 """Atomic op: set_stereocenter.
 
 Gives a tetrahedral centre an absolute configuration, R or S (CIP), whether or
-not it already carries a chiral tag. This is the one op that *creates* a tag:
-break_bond clears the tag at both endpoints, and a product drawn without stereo
-can lead to a precursor that has it, so invert_stereocenter alone cannot reach
-every precursor.
+not it already carries a chiral tag, or clears it with ``stereo=None``. The one
+tetrahedral stereo op: inverting is setting the opposite label, and it can
+create a tag, which break_bond (clears both endpoints) and products drawn
+without stereo both require.
 """
 
 from rdkit import Chem
@@ -30,14 +30,14 @@ def _cip(mol: Chem.Mol, idx: int):
     return atom.GetProp("_CIPCode").upper() if atom.HasProp("_CIPCode") else None
 
 
-def set_stereocenter(mol: Chem.Mol, idx: int, stereo: str) -> Chem.Mol:
-    """Set atom idx to CIP configuration ``stereo`` ('R' or 'S', case-insensitive).
+def set_stereocenter(mol: Chem.Mol, idx: int, stereo) -> Chem.Mol:
+    """Set atom idx to CIP configuration ``stereo`` ('R'/'S', case-insensitive; None clears).
 
     Returns a new sanitized Mol (input is not mutated).
 
     Raises ValueError if:
         - idx is out of range
-        - stereo is not 'R' or 'S'
+        - stereo is not 'R', 'S' or None
         - the atom is not a CIP stereocentre (neither tag gives it a label)
     """
     n = mol.GetNumAtoms()

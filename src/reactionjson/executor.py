@@ -29,7 +29,7 @@ from reactionjson.ops import (
 
 
 def ops_vocabulary() -> str:
-    """The op set in force for this process: "v2" (nine ops) or "v1" (all twelve).
+    """The op set in force for this process: "v2" (seven ops) or "v1" (all twelve).
 
     One definition, read by every caller — the codegen policy that writes ops and
     the route_ops layer that replays them. They must agree: a v2 sequence that
@@ -123,7 +123,7 @@ def _execute_ops(
 
     :param vocabulary: "v1" (default) accepts every op, including the four kept
         only so historical plans, caches and rendered routes still replay. "v2"
-        accepts the nine-op set the model is actually shown, and rejects the
+        accepts the seven-op set the model is actually shown, and rejects the
         rest with a message naming the replacement. The default must stay "v1":
         139 of 141 recorded key steps and 95% of working recorded attempts use a
         v1-only op.
@@ -156,6 +156,8 @@ def _execute_ops(
             "change_atom": "not available: transmuting an element is not a "
                            "reaction. Disconnect and introduce the correct "
                            "fragment instead",
+            "invert_stereocenter": "set_stereocenter with the opposite R/S",
+            "clear_stereocenter": "set_stereocenter with stereo=null",
         }
         for i, op_dict in enumerate(ops):
             name = op_dict.get("op")

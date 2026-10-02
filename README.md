@@ -19,7 +19,7 @@ before `derive_ops` returns.
 
 ## The vocabulary
 
-Nine operations:
+Seven operations:
 
 | op | params | effect |
 |---|---|---|
@@ -28,9 +28,7 @@ Nine operations:
 | `add_group` | `map_idx`, `fragment_smiles` (exactly one `*`), `order?` | attaches a fragment |
 | `set_explicit_h` | `map_idx`, `n` | sets the hydrogen count on one atom |
 | `set_formal_charge` | `map_idx`, `charge` | sets the charge on one atom and refills its H to the new default valence |
-| `invert_stereocenter` | `map_idx` | flips @ to @@ |
-| `clear_stereocenter` | `map_idx` | removes a chiral tag |
-| `set_stereocenter` | `map_idx`, `stereo` (R/S) | gives a centre an absolute configuration, tagged or not |
+| `set_stereocenter` | `map_idx`, `stereo` (R/S/null) | gives a centre an absolute CIP configuration, tagged or not; null clears it |
 | `set_bond_stereo` | `map_a`, `map_b`, `stereo` (E/Z), `map_ref_a?`, `map_ref_b?` | sets alkene geometry |
 
 `break_bond` and `add_bond` are a **ladder over bond order** — one order at a

@@ -18,11 +18,13 @@ def canon_set(smiles):
     return frozenset(out)
 
 
-def test_vocabulary_is_nine_ops():
-    assert len(OPS) == 9
+def test_vocabulary_is_seven_ops():
+    assert len(OPS) == 7
     assert "change_atom" not in OPS       # retired: not a reaction
     assert "change_bond_order" not in OPS  # retired: subsumed by the ladder
     assert "remove_group" not in OPS       # retired: discarded a precursor
+    assert "invert_stereocenter" not in OPS  # retired: set_stereocenter, opposite R/S
+    assert "clear_stereocenter" not in OPS   # retired: set_stereocenter, stereo=null
 
 
 def test_break_bond_steps_down_one_order():
@@ -122,3 +124,34 @@ def test_set_bond_stereo_with_reversed_endpoints():
         out, err = apply_ops([{"op": "set_bond_stereo", "map_a": a, "map_b": b, "stereo": "E"}], smi)
         assert err is None, err
         assert canon_set(out) == canon_set("C/C=C/C")
+
+
+def test_set_stereocenter_inverts_and_clears():
+    smi = "[CH3:1][C@@H:2]([NH2:3])[C:4](=[O:5])[OH:6]"  # S
+    out, err = apply_ops([{"op": "set_stereocenter", "map_idx": 2, "stereo": "R"}], smi)
+    assert err is None, err
+    assert canon_set(out) == canon_set("C[C@@H](N)C(=O)O")
+    out, err = apply_ops([{"op": "set_stereocenter", "map_idx": 2, "stereo": None}], smi)
+    assert err is None, err
+    assert canon_set(out) == canon_set("CC(N)C(=O)O")
+
+
+def test_set_stereocenter_label_matches_the_written_smiles():
+    """After break_bond + add_group rebuild a ring CH, 'R' must come out R."""
+    from rdkit.Chem import rdCIPLabeler
+    product = "[NH2:1][C@@H:2]1[CH2:3][CH2:4][CH2:5][CH2:6][C@H:7]1[C:8](=[O:9])[OH:10]"
+    ops = [{"op": "break_bond", "map_a": 1, "map_b": 2},
+           {"op": "add_group", "map_idx": 2, "fragment_smiles": "*[C:12](=[O:11])[OH:13]"}]
+    for want in "RS":
+        out, err = apply_ops(ops + [{"op": "set_stereocenter", "map_idx": 2, "stereo": want}], product)
+        assert err is None, err
+        mol = Chem.MolFromSmiles(out)
+        rdCIPLabeler.AssignCIPLabels(mol)
+        atom = next(a for a in mol.GetAtoms() if a.GetAtomMapNum() == 2)
+        assert atom.GetProp("_CIPCode") == want
+
+
+def test_retired_stereo_ops_name_their_replacement():
+    out, err = apply_ops([{"op": "invert_stereocenter", "map_idx": 2}],
+                         "[CH3:1][C@@H:2]([NH2:3])[C:4](=[O:5])[OH:6]")
+    assert out is None and "set_stereocenter" in err

@@ -35,10 +35,9 @@ Translation rules (see README for the long form):
    an existing bond is raised one ``add_bond`` per order (the ladder).
 4. Hydrogen counts that valence refilling did not already get right are set with
    ``set_explicit_h``.
-5. Stereo last, once the constitution matches: ``invert_stereocenter`` /
-   ``clear_stereocenter`` for tetrahedral centres, ``set_stereocenter`` (R/S)
-   for one with no tag (cleared by a break_bond, or never drawn on the
-   product), ``set_bond_stereo`` for alkenes (a stale E/Z is cleared by stepping
+5. Stereo last, once the constitution matches: ``set_stereocenter`` (R/S, or
+   null to clear) for tetrahedral centres, tagged or not (a tag cleared by a
+   break_bond, or never drawn on the product), ``set_bond_stereo`` for alkenes (a stale E/Z is cleared by stepping
    the bond down and up again).
 
 What v2 cannot express is flagged, never silently dropped: a tetrahedral centre
@@ -71,8 +70,6 @@ from reactionjson.ops import (
     add_bond,
     add_group,
     break_bond,
-    clear_stereocenter,
-    invert_stereocenter,
     set_bond_stereo,
     set_explicit_h,
     set_formal_charge,
@@ -118,10 +115,6 @@ def apply_op(mol: Chem.Mol, op: dict[str, Any]) -> Chem.Mol:
         return add_group(mol, r("map_idx"), op["fragment_smiles"], op.get("order", 1))
     if name == "set_explicit_h":
         return set_explicit_h(mol, r("map_idx"), op["n"])
-    if name == "invert_stereocenter":
-        return invert_stereocenter(mol, r("map_idx"))
-    if name == "clear_stereocenter":
-        return clear_stereocenter(mol, r("map_idx"))
     if name == "set_formal_charge":
         return set_formal_charge(mol, r("map_idx"), op["charge"])
     if name == "set_stereocenter":
